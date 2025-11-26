@@ -7,5 +7,8 @@ sealed interface GithubStoreGraph {
     data object HomeScreen : GithubStoreGraph
 
     @Serializable
+    data object SearchScreen : GithubStoreGraph
+
+    @Serializable
     data object AuthenticationScreen : GithubStoreGraph
 }

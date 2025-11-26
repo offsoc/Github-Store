@@ -16,6 +16,9 @@ import zed.rainxch.githubstore.feature.home.data.repository.HomeRepositoryImpl
 import zed.rainxch.githubstore.feature.home.data.repository.getPlatform
 import zed.rainxch.githubstore.feature.home.domain.repository.HomeRepository
 import zed.rainxch.githubstore.feature.home.presentation.HomeViewModel
+import zed.rainxch.githubstore.feature.search.data.repository.SearchRepositoryImpl
+import zed.rainxch.githubstore.feature.search.domain.repository.SearchRepository
+import zed.rainxch.githubstore.feature.search.presentation.SearchViewModel
 
 // Core/shared modules
 val coreModule: Module = module {
@@ -49,4 +52,15 @@ val homeModule: Module = module {
 
     // Presentation
     viewModel { HomeViewModel(get(), get()) }
+}
+
+val searchModule: Module = module {
+    single<SearchRepository> {
+        SearchRepositoryImpl(
+            githubNetworkClient = get(),
+        )
+    }
+
+    // Presentation
+    viewModel { SearchViewModel(get()) }
 }

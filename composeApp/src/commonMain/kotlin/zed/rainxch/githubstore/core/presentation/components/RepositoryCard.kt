@@ -1,4 +1,4 @@
-package zed.rainxch.githubstore.feature.home.presentation.components
+package zed.rainxch.githubstore.core.presentation.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,12 +22,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import zed.rainxch.githubstore.core.domain.model.GithubRepoSummary
 import zed.rainxch.githubstore.core.domain.model.GithubUser
-import zed.rainxch.githubstore.core.presentation.components.GithubStoreButton
 import zed.rainxch.githubstore.core.presentation.theme.GithubStoreTheme
 
 @Composable

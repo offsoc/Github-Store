@@ -16,6 +16,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.githubstore.MainViewModel
 import zed.rainxch.githubstore.feature.auth.presentation.AuthenticationRoot
 import zed.rainxch.githubstore.feature.home.presentation.HomeRoot
+import zed.rainxch.githubstore.feature.search.presentation.SearchRoot
 
 @Composable
 fun AppNavigation(
@@ -43,7 +44,19 @@ fun AppNavigation(
         } else GithubStoreGraph.AuthenticationScreen
     ) {
         composable<GithubStoreGraph.HomeScreen> {
-            HomeRoot()
+            HomeRoot(
+                onNavigateToSearch = {
+                    navHostController.navigate(GithubStoreGraph.SearchScreen)
+                }
+            )
+        }
+
+        composable<GithubStoreGraph.SearchScreen> {
+            SearchRoot(
+                onNavigateBack = {
+                    navHostController.navigateUp()
+                }
+            )
         }
 
         composable<GithubStoreGraph.AuthenticationScreen> {
