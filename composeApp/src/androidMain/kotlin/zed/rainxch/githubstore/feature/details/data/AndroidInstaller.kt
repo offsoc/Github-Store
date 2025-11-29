@@ -8,11 +8,33 @@ import android.provider.Settings
 import androidx.core.content.FileProvider
 import java.io.File
 import androidx.core.net.toUri
+import zed.rainxch.githubstore.core.domain.model.Architecture
+import zed.rainxch.githubstore.core.domain.model.GithubAsset
 
 class AndroidInstaller(
     private val context: Context,
     private val files: FileLocationsProvider,
 ) : Installer {
+
+    override fun getSystemArchitecture(): Architecture {
+        val arch = Build.SUPPORTED_ABIS.firstOrNull() ?: return Architecture.UNKNOWN
+        return when {
+            arch.contains("arm64") || arch.contains("aarch64") -> Architecture.AARCH64
+            arch.contains("armeabi") -> Architecture.ARM
+            arch.contains("x86_64") -> Architecture.X86_64
+            arch.contains("x86") -> Architecture.X86
+            else -> Architecture.UNKNOWN
+        }
+    }
+
+    override fun isAssetInstallable(assetName: String): Boolean {
+        return assetName.lowercase().endsWith(".apk")
+    }
+
+    override fun choosePrimaryAsset(assets: List<GithubAsset>): GithubAsset? {
+        return assets.firstOrNull { it.name.lowercase().endsWith(".apk") }
+    }
+
 
     override suspend fun isSupported(extOrMime: String): Boolean {
         val ext = extOrMime.lowercase()
