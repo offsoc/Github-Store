@@ -203,6 +203,8 @@ class DetailsViewModel(
 
                 _state.value = _state.value.copy(downloadStage = DownloadStage.DOWNLOADING)
 
+                // Download with progress tracking
+                var filePath: String? = null
                 downloader.download(downloadUrl, assetName).collect { p ->
                     _state.value = _state.value.copy(downloadProgressPercent = p.percent)
                     if (p.percent == 100) {
@@ -210,7 +212,10 @@ class DetailsViewModel(
                     }
                 }
 
-                val filePath = downloader.saveToFile(downloadUrl, assetName)
+                // Get the file path (file is already downloaded by the flow above)
+                filePath = downloader.getDownloadedFilePath(assetName)
+                    ?: throw IllegalStateException("Downloaded file not found")
+
                 appendLog(assetName, sizeBytes, releaseTag, "Downloaded")
 
                 _state.value = _state.value.copy(downloadStage = DownloadStage.INSTALLING)
@@ -253,14 +258,10 @@ class DetailsViewModel(
                     downloadProgressPercent = null
                 )
 
-                try {
-                    downloader.download(downloadUrl, assetName).collect { p ->
-                        _state.value = _state.value.copy(downloadProgressPercent = p.percent)
-                    }
-                } catch (_: Throwable) {
+                downloader.download(downloadUrl, assetName).collect { p ->
+                    _state.value = _state.value.copy(downloadProgressPercent = p.percent)
                 }
 
-                downloader.saveToFile(downloadUrl, assetName)
                 _state.value = _state.value.copy(isDownloading = false)
                 appendLog(assetName, sizeBytes, releaseTag, "Downloaded")
 

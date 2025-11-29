@@ -3,6 +3,7 @@ package zed.rainxch.githubstore.feature.details.data
 import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +14,6 @@ import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.last
 import zed.rainxch.githubstore.feature.details.domain.model.DownloadProgress
 
 class AndroidDownloader(
@@ -31,11 +31,12 @@ class AndroidDownloader(
         if (!dir.exists()) dir.mkdirs()
 
         val safeName = (suggestedFileName?.takeIf { it.isNotBlank() }
-            ?: url.substringAfterLast('/').ifBlank { "asset-${UUID.randomUUID()}" })
+            ?: url.substringAfterLast('/').ifBlank { "asset-${UUID.randomUUID()}.apk" })
 
         val tentativeDestination = File(dir, safeName)
 
         if (tentativeDestination.exists() && tentativeDestination.length() > 0) {
+            Logger.d { "File already exists: ${tentativeDestination.absolutePath}" }
             emit(
                 DownloadProgress(
                     tentativeDestination.length(),
@@ -46,10 +47,12 @@ class AndroidDownloader(
             return@flow
         }
 
+        Logger.d { "Starting download: $url" }
+
         val request = DownloadManager.Request(Uri.parse(url)).apply {
             setTitle(safeName)
             setDescription("Downloading asset")
-            setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN)
+            setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
             setDestinationInExternalFilesDir(context, "ghs_downloads", safeName)
             setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
             setAllowedOverMetered(true)
@@ -84,11 +87,13 @@ class AndroidDownloader(
                             throw IllegalStateException("File not ready after timeout: $finalPath")
                         }
 
+                        Logger.d { "Download complete: $finalPath" }
                         emit(DownloadProgress(downloaded, total, 100))
                         isDone = true
                     }
                     DownloadManager.STATUS_FAILED -> {
                         val reason = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))
+                        Logger.e { "Download failed with reason: $reason" }
                         throw IllegalStateException("Download failed: $reason")
                     }
                     else -> emit(
@@ -109,9 +114,31 @@ class AndroidDownloader(
     }.flowOn(Dispatchers.IO)
 
     override suspend fun saveToFile(url: String, suggestedFileName: String?): String = withContext(Dispatchers.IO) {
-        download(url, suggestedFileName).last()
         val safeName = (suggestedFileName?.takeIf { it.isNotBlank() }
-            ?: url.substringAfterLast('/').ifBlank { "asset-${UUID.randomUUID()}" })
-        File(files.appDownloadsDir(), safeName).absolutePath
+            ?: url.substringAfterLast('/').ifBlank { "asset-${UUID.randomUUID()}.apk" })
+
+        val file = File(files.appDownloadsDir(), safeName)
+
+        // If file already exists, return its path
+        if (file.exists() && file.length() > 0) {
+            Logger.d { "File already exists: ${file.absolutePath}" }
+            return@withContext file.absolutePath
+        }
+
+        // Otherwise download it
+        Logger.w { "saveToFile called but file doesn't exist, downloading..." }
+        download(url, suggestedFileName).collect { }
+
+        file.absolutePath
+    }
+
+    override suspend fun getDownloadedFilePath(fileName: String): String? = withContext(Dispatchers.IO) {
+        val file = File(files.appDownloadsDir(), fileName)
+
+        if (file.exists() && file.length() > 0) {
+            file.absolutePath
+        } else {
+            null
+        }
     }
 }

@@ -19,4 +19,5 @@ interface Downloader {
      * Convenience: downloads and returns the absolute file path when complete.
      */
     suspend fun saveToFile(url: String, suggestedFileName: String? = null): String
+    suspend fun getDownloadedFilePath(fileName: String): String?
 }
