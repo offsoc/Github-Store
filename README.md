@@ -173,25 +173,6 @@ If your repo meets these conditions, Github Store can find it through search and
 
 ---
 
-## 🧱 Architecture
-
-Github Store is structured as a modular Kotlin Multiplatform app:
-
-- `app/`: navigation, DI setup (`initKoin`, `PlatformModules`, `SharedModules`), root `App.kt` and `MainViewModel`.
-- `core/`
-  - `domain/`: pure models (`GithubRepoSummary`, `GithubRelease`, `PlatformType`, `SystemArchitecture`, etc.) and platform abstractions (`Platform`, `AndroidPlatform`, `DesktopPlatform`).
-  - `data/`: Ktor GitHub client (`GitHubClient`), DTOs, mappers, repositories, token storage.
-  - `presentation/`: shared UI components, theme, and utilities (`UpdatedAtFormatter`, `ObserveAsEvents`, `Browser` expect/actual).
-- `feature/` (vertical feature packages)
-  - `auth/`: GitHub OAuth device‑code flow (`AuthRepository`, use cases, `AuthenticationViewModel`).
-  - `home/`, `search/`, `details/`: each with `data / domain / presentation` layers and their own `ViewModel`, state, actions, and composables.
-- Platform source sets:
-  - `androidMain/`: `MainActivity`, Android installers/downloaders, file locations, platform DI (`PlatformModules.android.kt`).
-  - `jvmMain/`: desktop entry (`main.kt`), installers/downloaders per OS, platform DI (`PlatformModules.jvm.kt`).
-
-Screenshots and marketing assets live in `screenshots/`, desktop app-icons in `composeApp/logo/`, and Android resources / icons are under `src/androidMain/res`.
-
-
 ## ✅ Pros / Why use Github Store?
 
 - **No more hunting through GitHub releases**  
