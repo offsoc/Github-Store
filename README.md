@@ -42,14 +42,12 @@ Github Store is a Kotlin Multiplatform app (Android + Desktop) that turns GitHub
 - Detects your platform and surfaces the correct installer.
 - Always installs from the **latest published release** and highlights its changelog.
 - Presents a polished details screen with stats, README, and developer info.
-
-The repository is currently private while the core is being stabilized, but it will be public and fully open source under the Apache 2.0 license very soon.
-
 ---
 
 ## 🔃 Download
 Go to the [Releases](https://github.com/rainxchzed/Github-Store/releases) to download the latest Installer.
 
+> [!IMPORTANT]
 > On macOS, you may see a warning that Apple cannot verify Github Store is free of malware. This happens because the app is distributed outside the App Store and is not notarized yet. You can allow it via System Settings → Privacy & Security → Open Anyway.
 
 ## 🚀 Features
