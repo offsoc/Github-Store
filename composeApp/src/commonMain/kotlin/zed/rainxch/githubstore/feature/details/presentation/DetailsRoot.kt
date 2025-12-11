@@ -127,7 +127,7 @@ fun DetailsScreen(
                     ),
                     modifier = Modifier.liquid(liquidTopbarState) {
                         this.shape = CutCornerShape(0.dp)
-                        this.frost = 20.dp
+                        this.frost = 8.dp
                     }
                 )
             },
