@@ -6,8 +6,6 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import zed.rainxch.githubstore.core.data.AndroidApkInfoExtractor
-import zed.rainxch.githubstore.core.data.AndroidPackageMonitor
-import zed.rainxch.githubstore.core.data.PackageMonitor
 import zed.rainxch.githubstore.core.data.local.data_store.createDataStore
 import zed.rainxch.githubstore.core.data.local.db.AppDatabase
 import zed.rainxch.githubstore.core.data.local.db.initDatabase
@@ -65,7 +63,4 @@ actual val platformModule: Module = module {
         initDatabase(androidContext())
     }
 
-    single<PackageMonitor> {
-        AndroidPackageMonitor(androidContext())
-    }
 }
