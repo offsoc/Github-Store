@@ -20,7 +20,9 @@ import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import zed.rainxch.githubstore.core.presentation.theme.GithubStoreTheme
 import zed.rainxch.githubstore.network.RateLimitInfo
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 @Composable
 fun RateLimitDialog(
     rateLimitInfo: RateLimitInfo?,
@@ -43,7 +45,11 @@ fun RateLimitDialog(
         },
         title = {
             Text(
-                text = "Rate Limit Exceeded",
+                text = if (!isAuthenticated) {
+                    "Sign in to access GitLab features."
+                } else if (rateLimitInfo?.isExhausted == true) {
+                    "Rate limit exceeded. Wait until ${rateLimitInfo.reset} or sign in for higher limits."
+                } else { "Rate limit exceeded." },
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.onSurface

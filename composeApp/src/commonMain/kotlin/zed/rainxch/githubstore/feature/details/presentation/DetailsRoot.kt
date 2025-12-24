@@ -49,7 +49,7 @@ import zed.rainxch.githubstore.feature.details.presentation.components.sections.
 import zed.rainxch.githubstore.feature.details.presentation.components.sections.whatsNew
 import zed.rainxch.githubstore.feature.details.presentation.components.states.ErrorState
 import zed.rainxch.githubstore.feature.details.presentation.utils.LocalTopbarLiquidState
-import zed.rainxch.githubstore.feature.details.presentation.utils.isLiquidTopbarEnabled
+import zed.rainxch.githubstore.core.presentation.utils.isLiquidTopbarEnabled
 
 @Composable
 fun DetailsRoot(

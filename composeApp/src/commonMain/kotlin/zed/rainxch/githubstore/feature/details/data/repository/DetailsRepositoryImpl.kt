@@ -7,6 +7,7 @@ import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.http.HttpHeaders
 import zed.rainxch.githubstore.app.app_state.AppStateManager
+import zed.rainxch.githubstore.core.domain.model.ApiPlatform
 import zed.rainxch.githubstore.core.domain.model.GithubRelease
 import zed.rainxch.githubstore.core.domain.model.GithubRepoSummary
 import zed.rainxch.githubstore.core.domain.model.GithubUser
@@ -23,14 +24,16 @@ import zed.rainxch.githubstore.network.RateLimitException
 import zed.rainxch.githubstore.network.safeApiCall
 
 class DetailsRepositoryImpl(
-    private val github: HttpClient,
-    private val appStateManager: AppStateManager
+    private val httpClient: HttpClient,
+    private val appStateManager: AppStateManager,
+    private val apiPlatform: ApiPlatform
 ) : DetailsRepository {
 
     override suspend fun getRepositoryById(id: Long): GithubRepoSummary {
-        val repoResult = github.safeApiCall<RepoByIdNetwork>(
+        val repoResult = httpClient.safeApiCall<RepoByIdNetwork>(
             rateLimitHandler = appStateManager.rateLimitHandler,
-            autoRetryOnRateLimit = false
+            autoRetryOnRateLimit = false,
+            apiPlatform = apiPlatform
         ) {
             get("/repositories/$id") {
                 header(HttpHeaders.Accept, "application/vnd.github+json")
@@ -39,7 +42,10 @@ class DetailsRepositoryImpl(
 
         val repo = repoResult.getOrElse { error ->
             if (error is RateLimitException) {
-                appStateManager.updateRateLimit(error.rateLimitInfo)
+                appStateManager.updateRateLimit(
+                    rateLimitInfo = error.rateLimitInfo,
+                    apiPlatform = apiPlatform
+                )
             }
             throw error
         }
@@ -71,9 +77,10 @@ class DetailsRepositoryImpl(
         repo: String,
         defaultBranch: String
     ): GithubRelease? {
-        val releasesResult = github.safeApiCall<List<ReleaseNetwork>>(
+        val releasesResult = httpClient.safeApiCall<List<ReleaseNetwork>>(
             rateLimitHandler = appStateManager.rateLimitHandler,
-            autoRetryOnRateLimit = false
+            autoRetryOnRateLimit = false,
+            apiPlatform = apiPlatform
         ) {
             get("/repos/$owner/$repo/releases") {
                 header(HttpHeaders.Accept, "application/vnd.github+json")
@@ -83,7 +90,10 @@ class DetailsRepositoryImpl(
 
         releasesResult.onFailure { error ->
             if (error is RateLimitException) {
-                appStateManager.updateRateLimit(error.rateLimitInfo)
+                appStateManager.updateRateLimit(
+                    rateLimitInfo = error.rateLimitInfo,
+                    apiPlatform = apiPlatform
+                )
             }
         }
 
@@ -115,16 +125,20 @@ class DetailsRepositoryImpl(
 
     override suspend fun getReadme(owner: String, repo: String, defaultBranch: String): String? {
         return try {
-            val rawMarkdownResult = github.safeApiCall<String>(
+            val rawMarkdownResult = httpClient.safeApiCall<String>(
                 rateLimitHandler = appStateManager.rateLimitHandler,
-                autoRetryOnRateLimit = false
+                autoRetryOnRateLimit = false,
+                apiPlatform = apiPlatform
             ) {
                 get("https://raw.githubusercontent.com/$owner/$repo/$defaultBranch/README.md")
             }
 
             rawMarkdownResult.onFailure { error ->
                 if (error is RateLimitException) {
-                    appStateManager.updateRateLimit(error.rateLimitInfo)
+                    appStateManager.updateRateLimit(
+                        rateLimitInfo = error.rateLimitInfo,
+                        apiPlatform = apiPlatform
+                    )
                 }
             }
 
@@ -153,9 +167,10 @@ class DetailsRepositoryImpl(
     }
 
     override suspend fun getRepoStats(owner: String, repo: String): RepoStats {
-        val infoResult = github.safeApiCall<RepoInfoNetwork>(
+        val infoResult = httpClient.safeApiCall<RepoInfoNetwork>(
             rateLimitHandler = appStateManager.rateLimitHandler,
-            autoRetryOnRateLimit = false
+            autoRetryOnRateLimit = false,
+            apiPlatform = apiPlatform
         ) {
             get("/repos/$owner/$repo") {
                 header(HttpHeaders.Accept, "application/vnd.github+json")
@@ -164,7 +179,10 @@ class DetailsRepositoryImpl(
 
         val info = infoResult.getOrElse { error ->
             if (error is RateLimitException) {
-                appStateManager.updateRateLimit(error.rateLimitInfo)
+                appStateManager.updateRateLimit(
+                    rateLimitInfo = error.rateLimitInfo,
+                    apiPlatform = apiPlatform
+                )
             }
             throw error
         }
@@ -177,9 +195,10 @@ class DetailsRepositoryImpl(
     }
 
     override suspend fun getUserProfile(username: String): GithubUserProfile {
-        val userResult = github.safeApiCall<UserProfileNetwork>(
+        val userResult = httpClient.safeApiCall<UserProfileNetwork>(
             rateLimitHandler = appStateManager.rateLimitHandler,
-            autoRetryOnRateLimit = false
+            autoRetryOnRateLimit = false,
+            apiPlatform = apiPlatform
         ) {
             get("/users/$username") {
                 header(HttpHeaders.Accept, "application/vnd.github+json")
@@ -188,7 +207,10 @@ class DetailsRepositoryImpl(
 
         val user = userResult.getOrElse { error ->
             if (error is RateLimitException) {
-                appStateManager.updateRateLimit(error.rateLimitInfo)
+                appStateManager.updateRateLimit(
+                    rateLimitInfo = error.rateLimitInfo,
+                    apiPlatform = apiPlatform
+                )
             }
             throw error
         }

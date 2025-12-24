@@ -25,10 +25,14 @@ val localProps = Properties().apply {
 val localGithubClientId =
     (localProps.getProperty("GITHUB_CLIENT_ID") ?: "Ov23linTY28VFpFjFiI9").trim()
 
+val localGitlabClientId =
+    (localProps.getProperty("GITLAB_CLIENT_ID") ?: "30c79a5549f5acc7ec9ef9c6f8de4d0be62dac7e046e5ac4d25509f9500328ea").trim()
+
 // Generate BuildConfig for JVM (Configuration Cache Compatible)
 val generateJvmBuildConfig = tasks.register("generateJvmBuildConfig") {
     val outputDir = layout.buildDirectory.dir("generated/buildconfig/jvm")
-    val clientId = localGithubClientId
+    val githubClientId = localGithubClientId
+    val gitlabClientId = localGitlabClientId
     val versionName = appVersionName
 
     outputs.dir(outputDir)
@@ -41,7 +45,8 @@ val generateJvmBuildConfig = tasks.register("generateJvmBuildConfig") {
             package zed.rainxch.githubstore
             
             object BuildConfig {
-                const val GITHUB_CLIENT_ID = "$clientId"
+                const val GITHUB_CLIENT_ID = "$githubClientId"
+                const val GITLAB_CLIENT_ID = "$gitlabClientId"
                 const val VERSION_NAME = "$versionName"
             }
         """.trimIndent()
@@ -184,6 +189,7 @@ android {
         versionName = appVersionName
 
         buildConfigField("String", "GITHUB_CLIENT_ID", "\"${localGithubClientId}\"")
+        buildConfigField("String", "GITLAB_CLIENT_ID", "\"${localGitlabClientId}\"")
         buildConfigField("String", "VERSION_NAME", "\"${appVersionName}\"")
     }
     packaging {

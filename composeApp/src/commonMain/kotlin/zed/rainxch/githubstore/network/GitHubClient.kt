@@ -18,6 +18,7 @@ import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import zed.rainxch.githubstore.core.data.data_source.TokenDataSource
+import zed.rainxch.githubstore.core.domain.model.ApiPlatform
 
 fun buildGitHubHttpClient(
     getAccessToken: () -> String?,
@@ -39,7 +40,7 @@ fun buildGitHubHttpClient(
             retryIf { _, response ->
                 val code = response.status.value
 
-                rateLimitHandler?.updateFromHeaders(response.headers)
+                rateLimitHandler?.updateFromHeaders(response.headers, ApiPlatform.Github)
 
                 if (code == 403) {
                     val remaining = response.headers["X-RateLimit-Remaining"]?.toIntOrNull()
@@ -74,6 +75,60 @@ fun buildGitHubHttpClient(
     }
 }
 
+fun buildGitLabHttpClient(
+    getAccessToken: () -> String?,
+    rateLimitHandler: RateLimitHandler? = null,
+    gitlabUrl: String = "https://gitlab.com"
+): HttpClient {
+    val json = Json { ignoreUnknownKeys = true }
+
+    return HttpClient {
+        install(ContentNegotiation) { json(json) }
+
+        install(HttpTimeout) {
+            requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+            connectTimeoutMillis = 30_000
+            socketTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+        }
+
+        install(HttpRequestRetry) {
+            maxRetries = 3
+            retryIf { _, response ->
+                val code = response.status.value
+
+                rateLimitHandler?.updateFromHeaders(response.headers, ApiPlatform.GitLab)
+
+                if (code == 429) {
+                    return@retryIf true
+                }
+
+                code in 500..<600
+            }
+
+            retryOnExceptionIf { _, cause ->
+                cause is HttpRequestTimeoutException ||
+                        cause is UnresolvedAddressException ||
+                        cause is IOException
+            }
+
+            exponentialDelay()
+        }
+
+        expectSuccess = false
+
+        defaultRequest {
+            url("$gitlabUrl/api/v4")
+            header(HttpHeaders.Accept, "application/json")
+            header(HttpHeaders.UserAgent, "GitLabStore/1.0 (KMP)")
+
+            val token = getAccessToken()?.trim().orEmpty()
+            if (token.isNotEmpty()) {
+                header(HttpHeaders.Authorization, "Bearer $token")
+            }
+        }
+    }
+}
+
 fun buildAuthedGitHubHttpClient(
     tokenDataSource: TokenDataSource,
     rateLimitHandler: RateLimitHandler? = null
@@ -83,11 +138,41 @@ fun buildAuthedGitHubHttpClient(
         rateLimitHandler = rateLimitHandler
     )
 
-fun HttpResponse.checkRateLimit(rateLimitHandler: RateLimitHandler?) {
-    rateLimitHandler?.updateFromHeaders(headers)
+fun buildAuthedGitLabHttpClient(
+    tokenDataSource: TokenDataSource,
+    rateLimitHandler: RateLimitHandler? = null,
+    gitlabUrl: String = "https://gitlab.com"
+): HttpClient =
+    buildGitLabHttpClient(
+        getAccessToken = { tokenDataSource.current()?.accessToken },
+        rateLimitHandler = rateLimitHandler,
+        gitlabUrl = gitlabUrl
+    )
 
-    if (status.value == 403) {
-        val rateLimitInfo = RateLimitInfo.fromHeaders(headers)
+fun buildAuthedHttpClient(
+    tokenDataSource: TokenDataSource,
+    apiPlatform: ApiPlatform,
+    rateLimitHandler: RateLimitHandler? = null,
+    gitlabUrl: String = "https://gitlab.com"
+): HttpClient = when (apiPlatform) {
+    ApiPlatform.Github -> buildAuthedGitHubHttpClient(tokenDataSource, rateLimitHandler)
+    ApiPlatform.GitLab -> buildAuthedGitLabHttpClient(tokenDataSource, rateLimitHandler, gitlabUrl)
+}
+
+fun HttpResponse.checkRateLimit(
+    rateLimitHandler: RateLimitHandler?,
+    apiPlatform: ApiPlatform
+) {
+    rateLimitHandler?.updateFromHeaders(headers, apiPlatform)
+
+    val statusCode = status.value
+    val isRateLimited = when (apiPlatform) {
+        ApiPlatform.Github -> statusCode == 403
+        ApiPlatform.GitLab -> statusCode == 429
+    }
+
+    if (isRateLimited) {
+        val rateLimitInfo = RateLimitInfo.fromHeaders(headers, apiPlatform)
         if (rateLimitInfo != null && rateLimitInfo.isExhausted) {
             throw RateLimitException(rateLimitInfo)
         }
@@ -95,21 +180,22 @@ fun HttpResponse.checkRateLimit(rateLimitHandler: RateLimitHandler?) {
 }
 
 suspend inline fun <reified T> HttpClient.safeApiCall(
+    apiPlatform: ApiPlatform,
     rateLimitHandler: RateLimitHandler? = null,
     autoRetryOnRateLimit: Boolean = false,
     crossinline block: suspend HttpClient.() -> HttpResponse
 ): Result<T> {
     return try {
-        if (rateLimitHandler != null && rateLimitHandler.isRateLimited()) {
+        if (rateLimitHandler != null && rateLimitHandler.isRateLimited(apiPlatform)) {
             if (autoRetryOnRateLimit) {
-                val waitTime = rateLimitHandler.getTimeUntilReset()
-                Logger.d { "⏳ Rate limited, waiting ${waitTime}ms..." }
+                val waitTime = rateLimitHandler.getTimeUntilReset(apiPlatform)
+                Logger.d { "⏳ Rate limited on ${apiPlatform.name}, waiting ${waitTime}ms..." }
                 kotlinx.coroutines.delay(waitTime + 1000)
             } else {
                 return Result.failure(
                     exception = RateLimitException(
-                        rateLimitInfo = rateLimitHandler.getCurrentRateLimit()!!,
-                        message = "Rate limit exceeded. Try again later or sign in for higher limits."
+                        rateLimitInfo = rateLimitHandler.getCurrentRateLimit(apiPlatform)!!,
+                        message = "Rate limit exceeded on ${apiPlatform.name}. Try again later or sign in for higher limits."
                     )
                 )
             }
@@ -117,14 +203,14 @@ suspend inline fun <reified T> HttpClient.safeApiCall(
 
         val response = block()
 
-        response.checkRateLimit(rateLimitHandler)
+        response.checkRateLimit(rateLimitHandler, apiPlatform)
 
         if (response.status.isSuccess()) {
             Result.success(response.body<T>())
+        } else if (response.status.value == 401 && apiPlatform == ApiPlatform.GitLab) {
+            return Result.failure(Exception("Authentication required for ${apiPlatform.name}"))
         } else {
-            Result.failure(
-                Exception("HTTP ${response.status.value}: ${response.status.description}")
-            )
+            return Result.failure(Exception("HTTP ${response.status.value}: ${response.status.description}"))
         }
     } catch (e: RateLimitException) {
         Result.failure(e)
