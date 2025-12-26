@@ -53,7 +53,7 @@ import zed.rainxch.githubstore.core.presentation.utils.isLiquidTopbarEnabled
 
 @Composable
 fun DetailsRoot(
-    onOpenRepositoryInApp: (repoId: Int) -> Unit,
+    onOpenRepositoryInApp: (repoId: Long) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: DetailsViewModel = koinViewModel()
 ) {
@@ -64,7 +64,7 @@ fun DetailsRoot(
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is DetailsEvent.OnOpenRepositoryInApp -> {
-                onOpenRepositoryInApp(event.repositoryId)
+                onOpenRepositoryInApp(event.repositoryId.toLong())
             }
 
             is DetailsEvent.InstallTrackingFailed -> {

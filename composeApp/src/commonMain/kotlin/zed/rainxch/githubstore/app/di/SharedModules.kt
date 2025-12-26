@@ -1,5 +1,6 @@
 package zed.rainxch.githubstore.app.di
 
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -11,7 +12,9 @@ import org.koin.dsl.module
 import zed.rainxch.githubstore.MainViewModel
 import zed.rainxch.githubstore.app.app_state.AppStateManager
 import zed.rainxch.githubstore.core.data.data_source.DefaultTokenDataSource
+import zed.rainxch.githubstore.core.data.data_source.OAuthTokenRefresher
 import zed.rainxch.githubstore.core.data.data_source.TokenDataSource
+import zed.rainxch.githubstore.core.data.data_source.TokenRefresher
 import zed.rainxch.githubstore.core.data.local.db.AppDatabase
 import zed.rainxch.githubstore.core.data.repository.FavoritesRepositoryImpl
 import zed.rainxch.githubstore.core.data.repository.InstalledAppsRepositoryImpl
@@ -45,35 +48,6 @@ import zed.rainxch.githubstore.network.buildAuthedGitHubHttpClient
 import zed.rainxch.githubstore.network.buildAuthedGitLabHttpClient
 
 val coreModule: Module = module {
-    // Token Management
-    single<TokenDataSource>(TokenDataStoreQualifiers.Github) {
-        DefaultTokenDataSource(
-            apiPlatform = ApiPlatform.Github,
-            tokenStore = get()
-        )
-    }
-
-    single<TokenDataSource>(TokenDataStoreQualifiers.GitLab) { params ->
-        DefaultTokenDataSource(
-            apiPlatform = ApiPlatform.GitLab,
-            tokenStore = get()
-        )
-    }
-
-    // Rate Limiting
-    single<RateLimitHandler> {
-        RateLimitHandler()
-    }
-
-    // App State Management
-    single {
-        AppStateManager(
-            rateLimitHandler = get(),
-            githubTokenDataSource = get(TokenDataStoreQualifiers.Github),
-            gitlabTokenDataSource = get(TokenDataStoreQualifiers.GitLab)
-        )
-    }
-
     // Platform
     single<Platform> {
         getPlatform()
@@ -231,7 +205,7 @@ val detailsModule: Module = module {
     // Repository
     single<DetailsRepository>(named("github")) {
         DetailsRepositoryImpl(
-            httpClient = get(named("github")),
+            httpClient = get(NetworkQualifiers.Github),
             appStateManager = get(),
             apiPlatform = ApiPlatform.Github
         )
@@ -239,7 +213,7 @@ val detailsModule: Module = module {
 
     single<DetailsRepository>(named("gitlab")) {
         DetailsRepositoryImpl(
-            httpClient = get(named("gitlab")),
+            httpClient = get(NetworkQualifiers.GitLab),
             appStateManager = get(),
             apiPlatform = ApiPlatform.GitLab
         )
@@ -318,8 +292,47 @@ val networkModule = module {
 
     single(NetworkQualifiers.GitLab) {
         buildAuthedGitLabHttpClient(
-            tokenDataSource = get<TokenDataSource>(TokenDataStoreQualifiers.Github),
+            tokenDataSource = get<TokenDataSource>(TokenDataStoreQualifiers.GitLab),
             rateLimitHandler = get()
+        )
+    }
+}
+
+val tokenModule = module {
+    single<TokenRefresher> {
+        OAuthTokenRefresher(httpClient = HttpClient())
+    }
+
+    // Token Management
+    single<TokenDataSource>(TokenDataStoreQualifiers.Github) {
+        DefaultTokenDataSource(
+            tokenStore = get(),
+            apiPlatform = ApiPlatform.Github,
+            tokenRefresher = get(),
+            scope = get()
+        )
+    }
+
+    single<TokenDataSource>(TokenDataStoreQualifiers.GitLab) {
+        DefaultTokenDataSource(
+            tokenStore = get(),
+            apiPlatform = ApiPlatform.GitLab,
+            tokenRefresher = get(),
+            scope = get()
+        )
+    }
+
+    // Rate Limiting
+    single<RateLimitHandler> {
+        RateLimitHandler()
+    }
+
+    // App State Management
+    single {
+        AppStateManager(
+            rateLimitHandler = get(),
+            githubTokenDataSource = get(TokenDataStoreQualifiers.Github),
+            gitlabTokenDataSource = get(TokenDataStoreQualifiers.GitLab)
         )
     }
 }

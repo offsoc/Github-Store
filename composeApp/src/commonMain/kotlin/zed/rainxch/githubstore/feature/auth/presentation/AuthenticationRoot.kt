@@ -302,7 +302,11 @@ fun StateLoggedOut(
             },
             icon = {
                 Icon(
-                    painter = painterResource(Res.drawable.ic_github),
+                    painter = painterResource(
+                        if (state.currentApiPlatform == ApiPlatform.Github) {
+                            Res.drawable.ic_github
+                        } else Res.drawable.ic_gitlab
+                    ),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp)
                 )

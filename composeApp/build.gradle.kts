@@ -26,13 +26,17 @@ val localGithubClientId =
     (localProps.getProperty("GITHUB_CLIENT_ID") ?: "Ov23linTY28VFpFjFiI9").trim()
 
 val localGitlabClientId =
-    (localProps.getProperty("GITLAB_CLIENT_ID") ?: "30c79a5549f5acc7ec9ef9c6f8de4d0be62dac7e046e5ac4d25509f9500328ea").trim()
+    (localProps.getProperty("GITLAB_CLIENT_ID")
+        ?: "30c79a5549f5acc7ec9ef9c6f8de4d0be62dac7e046e5ac4d25509f9500328ea").trim()
+
+val localGitlabClientSecret = localProps.getProperty("GITLAB_CLIENT_SECRET")
 
 // Generate BuildConfig for JVM (Configuration Cache Compatible)
 val generateJvmBuildConfig = tasks.register("generateJvmBuildConfig") {
     val outputDir = layout.buildDirectory.dir("generated/buildconfig/jvm")
     val githubClientId = localGithubClientId
     val gitlabClientId = localGitlabClientId
+    val gitlabClientSecret = localGitlabClientSecret
     val versionName = appVersionName
 
     outputs.dir(outputDir)
@@ -47,6 +51,7 @@ val generateJvmBuildConfig = tasks.register("generateJvmBuildConfig") {
             object BuildConfig {
                 const val GITHUB_CLIENT_ID = "$githubClientId"
                 const val GITLAB_CLIENT_ID = "$gitlabClientId"
+                const val GITLAB_CLIENT_SECRET = "$gitlabClientSecret"
                 const val VERSION_NAME = "$versionName"
             }
         """.trimIndent()
@@ -164,9 +169,10 @@ kotlin {
 }
 
 afterEvaluate {
-    tasks.matching { it.name.contains("kspKotlinJvm") || it.name == "compileKotlinJvm" }.configureEach {
-        dependsOn(generateJvmBuildConfig)
-    }
+    tasks.matching { it.name.contains("kspKotlinJvm") || it.name == "compileKotlinJvm" }
+        .configureEach {
+            dependsOn(generateJvmBuildConfig)
+        }
 }
 
 tasks.named("compileKotlinJvm") {
@@ -190,6 +196,7 @@ android {
 
         buildConfigField("String", "GITHUB_CLIENT_ID", "\"${localGithubClientId}\"")
         buildConfigField("String", "GITLAB_CLIENT_ID", "\"${localGitlabClientId}\"")
+        buildConfigField("String", "GITLAB_CLIENT_SECRET", "\"${localGitlabClientSecret}\"")
         buildConfigField("String", "VERSION_NAME", "\"${appVersionName}\"")
     }
     packaging {

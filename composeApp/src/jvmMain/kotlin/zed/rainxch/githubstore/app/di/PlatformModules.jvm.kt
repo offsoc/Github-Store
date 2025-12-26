@@ -74,7 +74,6 @@ actual val platformModule: Module = module {
     }
 
     single<AppLauncher> {
-        val platform = getPlatform()
-        DesktopAppLauncher(platform)
+        DesktopAppLauncher(get())
     }
 }

@@ -13,12 +13,21 @@ import kotlinx.io.IOException
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.*
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.request
 import io.ktor.http.HttpHeaders
+import io.ktor.http.URLProtocol
 import io.ktor.http.isSuccess
+import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import zed.rainxch.githubstore.core.data.data_source.TokenDataSource
 import zed.rainxch.githubstore.core.domain.model.ApiPlatform
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 fun buildGitHubHttpClient(
     getAccessToken: () -> String?,
@@ -117,11 +126,15 @@ fun buildGitLabHttpClient(
         expectSuccess = false
 
         defaultRequest {
-            url("$gitlabUrl/api/v4")
+            url("$gitlabUrl/api/v4/")
             header(HttpHeaders.Accept, "application/json")
-            header(HttpHeaders.UserAgent, "GitLabStore/1.0 (KMP)")
+            header(
+                HttpHeaders.UserAgent,
+                "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+            )
 
             val token = getAccessToken()?.trim().orEmpty()
+            Logger.d { "GitLab token present: ${token.isNotEmpty()}, length: ${token.length}" }
             if (token.isNotEmpty()) {
                 header(HttpHeaders.Authorization, "Bearer $token")
             }
@@ -142,21 +155,17 @@ fun buildAuthedGitLabHttpClient(
     tokenDataSource: TokenDataSource,
     rateLimitHandler: RateLimitHandler? = null,
     gitlabUrl: String = "https://gitlab.com"
-): HttpClient =
-    buildGitLabHttpClient(
-        getAccessToken = { tokenDataSource.current()?.accessToken },
+): HttpClient {
+    return buildGitLabHttpClient(
+        getAccessToken = {
+            runBlocking {
+                val token = tokenDataSource.refreshIfNeeded(ApiPlatform.GitLab)
+                token?.accessToken
+            }
+        },
         rateLimitHandler = rateLimitHandler,
         gitlabUrl = gitlabUrl
     )
-
-fun buildAuthedHttpClient(
-    tokenDataSource: TokenDataSource,
-    apiPlatform: ApiPlatform,
-    rateLimitHandler: RateLimitHandler? = null,
-    gitlabUrl: String = "https://gitlab.com"
-): HttpClient = when (apiPlatform) {
-    ApiPlatform.Github -> buildAuthedGitHubHttpClient(tokenDataSource, rateLimitHandler)
-    ApiPlatform.GitLab -> buildAuthedGitLabHttpClient(tokenDataSource, rateLimitHandler, gitlabUrl)
 }
 
 fun HttpResponse.checkRateLimit(
@@ -215,6 +224,7 @@ suspend inline fun <reified T> HttpClient.safeApiCall(
     } catch (e: RateLimitException) {
         Result.failure(e)
     } catch (e: Exception) {
+        Logger.e { "Exception in safeApiCall: ${e::class.simpleName} - ${e.message}" }
         Result.failure(e)
     }
 }

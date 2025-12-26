@@ -65,7 +65,7 @@ class HomeRepositoryImpl(
             )
 
             ApiPlatform.GitLab -> searchGitLabProjectsWithInstallersFlow(
-                minStars = 500,
+                minStars = 100,
                 sort = "star_count",
                 order = "desc",
                 startPage = page
@@ -205,8 +205,8 @@ class HomeRepositoryImpl(
 
     private fun searchGitLabProjectsWithInstallersFlow(
         minStars: Int,
-        sort: String,  // "star_count", "created_at", "last_activity_at"
-        order: String,  // "desc"
+        sort: String,
+        order: String,
         startPage: Int,
         desiredCount: Int = 10
     ): Flow<PaginatedRepos> = flow {
@@ -237,7 +237,7 @@ class HomeRepositoryImpl(
                     rateLimitHandler = appStateManager.rateLimitHandler,
                     autoRetryOnRateLimit = false
                 ) {
-                    get("/projects") {
+                    get("projects") {
                         parameter("search", searchTerm)
                         parameter("order_by", sort)
                         parameter("sort", order)
@@ -245,9 +245,6 @@ class HomeRepositoryImpl(
                         parameter("page", currentApiPage)
                         parameter("visibility", "public")
                         parameter("archived", false)
-                        // Add date filters where supported (adjust per method call):
-                        // For trending/recently updated: parameter("updated_after", oneWeekAgo.toString()) or last_activity_after
-                        // See notes below
                     }
                 }.getOrElse { error ->
                     handleSearchError(error, ApiPlatform.GitLab)
@@ -258,9 +255,8 @@ class HomeRepositoryImpl(
 
                 if (response.isEmpty()) break
 
-                // Client-side filter for minStars (and unsupported dates, e.g., created_at >= date)
                 val filtered = response.filter { project ->
-                    project.starCount >= minStars // && clientDateFilter(project) if needed
+                    project.starCount >= minStars
                 }
 
                 val githubFormatRepos = filtered.map { it.toGithubRepoNetworkModel() }
@@ -280,8 +276,9 @@ class HomeRepositoryImpl(
 
                 if (results.size >= desiredCount || response.size < perPage) break
 
-                // Early stop if ordered by star_count desc and last project's stars < minStars
-                if (sort == "star_count" && order == "desc" && response.lastOrNull()?.starCount ?: 0 < minStars) {
+                if (sort == "star_count" && order == "desc"
+                    && (response.lastOrNull()?.starCount ?: 0) < minStars
+                ) {
                     break
                 }
 
@@ -299,7 +296,14 @@ class HomeRepositoryImpl(
             }
         }
 
-        emitFinalResults(results, lastEmittedCount, currentApiPage, pagesFetchedCount, maxPagesToFetch, desiredCount)
+        emitFinalResults(
+            results,
+            lastEmittedCount,
+            currentApiPage,
+            pagesFetchedCount,
+            maxPagesToFetch,
+            desiredCount
+        )
     }.flowOn(Dispatchers.IO)
 
 
@@ -380,7 +384,10 @@ class HomeRepositoryImpl(
 
     private fun handleSearchError(error: Throwable, platform: ApiPlatform) {
         Logger.e { "Search request failed on ${platform.name}: ${error.message}" }
-        if (platform == ApiPlatform.GitLab && (error.message?.contains("401") == true || error.message?.contains("Authentication required") == true || error.message?.contains("Unauthorized") == true)) {
+        if ((platform == ApiPlatform.GitLab) && ((error.message?.contains("401") == true)
+                    || (error.message?.contains("Authentication required") == true)
+                    || (error.message?.contains("Unauthorized") == true))
+        ) {
             appStateManager.triggerAuthDialog(platform)
         }
         if (error is RateLimitException) {
@@ -472,13 +479,14 @@ class HomeRepositoryImpl(
     }
 
     private suspend fun checkGitLabReleases(repo: GithubRepoNetworkModel): GithubRepoSummary? {
-        val projectPath = repo.fullName
+        val projectId = repo.fullName.replace("/", "%2F")
+
         val releases = httpClient.safeApiCall<List<GitLabReleaseNetworkModel>>(
             apiPlatform = ApiPlatform.GitLab,
             rateLimitHandler = appStateManager.rateLimitHandler,
             autoRetryOnRateLimit = false
         ) {
-            get("/projects/$projectPath/releases") {
+            get("projects/$projectId/releases") {
                 parameter("per_page", 10)
             }
         }.getOrNull() ?: return null
@@ -490,6 +498,7 @@ class HomeRepositoryImpl(
         val hasRelevantAssets = links.any { link -> isRelevantAsset(link.name) }
         return if (hasRelevantAssets) repo.toSummary() else null
     }
+
 
     private fun isRelevantAsset(assetName: String): Boolean {
         val name = assetName.lowercase()
@@ -517,10 +526,5 @@ class HomeRepositoryImpl(
     @Serializable
     private data class AssetNetworkModel(
         val name: String
-    )
-
-    @Serializable
-    private data class GitLabSearchResponse(
-        val projects: List<GitLabProjectNetworkModel>
     )
 }

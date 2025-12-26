@@ -41,3 +41,5 @@ class AndroidTokenStore(
 
 actual fun getGithubClientId(): String = BuildConfig.GITHUB_CLIENT_ID
 actual fun getGitLabClientId(): String = BuildConfig.GITLAB_CLIENT_ID
+
+actual fun getGitLabClientSecret(): String = BuildConfig.GITLAB_CLIENT_SECRET

@@ -7,25 +7,24 @@ import kotlinx.serialization.Serializable
 data class GitLabProjectNetworkModel(
     val id: Int,
     val name: String,
-    val description: String? = null,
-    @SerialName("name_with_namespace") val nameWithNamespace: String,
     @SerialName("path_with_namespace") val pathWithNamespace: String,
+    val namespace: GitLabNamespaceNetworkModel? = null,
+    val description: String? = null,
     @SerialName("web_url") val webUrl: String,
-    @SerialName("star_count") val starCount: Int = 0,
-    @SerialName("forks_count") val forksCount: Int = 0,
-    @SerialName("created_at") val createdAt: String,
+    @SerialName("star_count") val starCount: Int,
+    @SerialName("forks_count") val forksCount: Int,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    val topics: List<String>? = null,
     @SerialName("last_activity_at") val lastActivityAt: String,
-    val topics: List<String> = emptyList(),
-    val namespace: GitLabNamespace? = null,
-    @SerialName("avatar_url") val avatarUrl: String? = null
+    @SerialName("default_branch") val default_branch: String? = null
 )
 
 @Serializable
-data class GitLabNamespace(
+data class GitLabNamespaceNetworkModel(
     val id: Int,
-    val name: String,
     val path: String,
-    @SerialName("full_path") val fullPath: String
+    @SerialName("full_path") val fullPath: String,
+    @SerialName("avatar_url") val avatarUrl: String? = null
 )
 
 @Serializable

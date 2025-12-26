@@ -15,7 +15,8 @@ fun initKoin(config: KoinAppDeclaration? = null) {
             detailsModule,
             settingsModule,
             appsModule,
-            networkModule
+            networkModule,
+            tokenModule,
         )
     }
 }

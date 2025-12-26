@@ -30,6 +30,7 @@ import zed.rainxch.githubstore.feature.settings.presentation.SettingsRoot
 
 @Composable
 fun AppNavigation(
+    currentApiPlatform: ApiPlatform,
     navBackStack: SnapshotStateList<GithubStoreGraph>
 ) {
     val liquidState = rememberLiquidState()
@@ -69,7 +70,7 @@ fun AppNavigation(
                             onNavigateToDetails = { repo ->
                                 navBackStack.add(
                                     GithubStoreGraph.DetailsScreen(
-                                        repositoryId = repo.id.toInt()
+                                        repositoryId = repo.id
                                     )
                                 )
                             },
@@ -93,7 +94,7 @@ fun AppNavigation(
                             onNavigateToDetails = { repo ->
                                 navBackStack.add(
                                     GithubStoreGraph.DetailsScreen(
-                                        repositoryId = repo.id.toInt()
+                                        repositoryId = repo.id
                                     )
                                 )
                             },
@@ -111,7 +112,7 @@ fun AppNavigation(
                             onNavigateToDetails = { repo ->
                                 navBackStack.add(
                                     GithubStoreGraph.DetailsScreen(
-                                        repositoryId = repo.id.toInt()
+                                        repositoryId = repo.id
                                     )
                                 )
                             }
@@ -131,7 +132,7 @@ fun AppNavigation(
                                 )
                             },
                             viewModel = koinViewModel {
-                                parametersOf(args.repositoryId, ApiPlatform.Github)
+                                parametersOf(args.repositoryId, currentApiPlatform)
                             }
                         )
                     }
@@ -166,7 +167,7 @@ fun AppNavigation(
                             onNavigateToRepo = { repoId ->
                                 navBackStack.add(
                                     GithubStoreGraph.DetailsScreen(
-                                        repositoryId = repoId.toInt()
+                                        repositoryId = repoId
                                     )
                                 )
                             }

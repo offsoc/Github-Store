@@ -51,3 +51,13 @@ actual fun getGitLabClientId(): String {
 
     return BuildConfig.GITLAB_CLIENT_ID
 }
+
+actual fun getGitLabClientSecret(): String {
+    val fromSys = System.getProperty("GITLAB_CLIENT_SECRET")?.trim().orEmpty()
+    if (fromSys.isNotEmpty()) return fromSys
+
+    val fromEnv = System.getenv("GITLAB_CLIENT_SECRET")?.trim().orEmpty()
+    if (fromEnv.isNotEmpty()) return fromEnv
+
+    return BuildConfig.GITLAB_CLIENT_SECRET
+}

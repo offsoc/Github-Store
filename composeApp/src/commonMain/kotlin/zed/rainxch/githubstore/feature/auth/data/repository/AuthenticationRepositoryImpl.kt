@@ -62,7 +62,7 @@ class AuthenticationRepositoryImpl(
                     }
 
                     try {
-                        val scopes = "read_user api read_repository write_repository"
+                        val scopes = "api"
                         val result = GitLabAuthApi.startDeviceFlow(clientId, gitlabUrl, scopes)
                         Logger.d { "✅ GitLab device flow started. User code: ${result.userCode}" }
                         result

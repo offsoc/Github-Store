@@ -29,20 +29,20 @@ import zed.rainxch.githubstore.core.data.services.Installer
 actual val platformModule: Module = module {
     single<Downloader> {
         AndroidDownloader(
-            context = get(),
+            context = androidContext(),
             files = get()
         )
     }
 
     single<Installer> {
         AndroidInstaller(
-            context = get(),
+            context = androidContext(),
             apkInfoExtractor = AndroidApkInfoExtractor(androidContext())
         )
     }
 
     single<FileLocationsProvider> {
-        AndroidFileLocationsProvider(context = get())
+        AndroidFileLocationsProvider(androidContext())
     }
 
     single<DataStore<Preferences>> {

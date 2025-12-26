@@ -5,27 +5,24 @@ import zed.rainxch.githubstore.core.data.model.GithubRepoNetworkModel
 import zed.rainxch.githubstore.feature.home.data.repository.dto.GitLabProjectNetworkModel
 
 fun GitLabProjectNetworkModel.toGithubRepoNetworkModel(): GithubRepoNetworkModel {
-    val ownerLogin = pathWithNamespace.substringBeforeLast("/")
-    val ownerAvatarUrl = avatarUrl ?: ""
-
     return GithubRepoNetworkModel(
-        id = id.toLong(),
-        name = name,
-        fullName = pathWithNamespace,
+        id = this.id.toLong(),
+        name = this.name,
+        fullName = this.pathWithNamespace,
         owner = GithubOwnerNetworkModel(
-            id = (namespace?.id ?: 0).toLong(),
-            login = ownerLogin,
-            avatarUrl = ownerAvatarUrl,
-            htmlUrl = "https://gitlab.com/$ownerLogin"
+            id = this.namespace?.id?.toLong() ?: 0L,
+            login = this.namespace?.path ?: "",
+            avatarUrl = this.namespace?.avatarUrl ?: "",
+            htmlUrl = this.namespace?.let { "https://gitlab.com/${it.fullPath}" } ?: ""
         ),
-        description = description,
-        htmlUrl = webUrl,
-        stargazersCount = starCount,
-        forksCount = forksCount,
-        topics = topics.takeIf { it.isNotEmpty() },
-        language = null,
+        description = this.description,
         defaultBranch = "main",
-        releasesUrl = "$webUrl/-/releases",
-        updatedAt = lastActivityAt,
+        htmlUrl = this.webUrl,
+        stargazersCount = this.starCount,
+        forksCount = this.forksCount,
+        language = null,
+        topics = this.topics,
+        releasesUrl = "https://gitlab.com/api/v4/projects/${this.pathWithNamespace.replace("/", "%2F")}/releases",
+        updatedAt = this.lastActivityAt
     )
 }

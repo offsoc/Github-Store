@@ -110,6 +110,7 @@ fun App(
         }
 
         AppNavigation(
+            currentApiPlatform = state.currentApiPlatform,
             navBackStack = navBackStack
         )
     }

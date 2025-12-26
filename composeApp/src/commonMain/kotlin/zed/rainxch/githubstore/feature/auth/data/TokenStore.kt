@@ -11,3 +11,5 @@ interface TokenStore {
 
 expect fun getGithubClientId(): String
 expect fun getGitLabClientId(): String
+
+expect fun getGitLabClientSecret(): String
