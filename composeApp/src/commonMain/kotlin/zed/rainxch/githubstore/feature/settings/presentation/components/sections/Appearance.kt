@@ -33,6 +33,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import githubstore.composeapp.generated.resources.Res
+import githubstore.composeapp.generated.resources.amoled_black_description
+import githubstore.composeapp.generated.resources.amoled_black_theme
+import githubstore.composeapp.generated.resources.section_appearance
+import githubstore.composeapp.generated.resources.selected_color
+import githubstore.composeapp.generated.resources.theme_color
+import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.githubstore.core.presentation.model.AppTheme
 import zed.rainxch.githubstore.core.presentation.theme.isDynamicColorAvailable
 
@@ -45,7 +52,7 @@ fun LazyListScope.appearance(
 ) {
     item {
         Text(
-            text = "APPEARANCE",
+            text = stringResource(Res.string.section_appearance),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.outline,
             fontWeight = FontWeight.Bold,
@@ -65,7 +72,7 @@ fun LazyListScope.appearance(
                 modifier = Modifier.padding(12.dp)
             ) {
                 Text(
-                    text = "Theme Color",
+                    text = stringResource(Res.string.theme_color),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -118,7 +125,10 @@ fun LazyListScope.appearance(
                                 if (selectedThemeColor == theme) {
                                     Icon(
                                         imageVector = Icons.Default.Done,
-                                        contentDescription = "Selected color : ${theme.displayName}",
+                                        contentDescription = stringResource(
+                                            Res.string.selected_color,
+                                            theme.displayName()
+                                        ),
                                         modifier = Modifier.size(24.dp),
                                         tint = MaterialTheme.colorScheme.onPrimary
                                     )
@@ -126,7 +136,7 @@ fun LazyListScope.appearance(
                             }
 
                             Text(
-                                text = theme.displayName,
+                                text = theme.displayName(),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -159,7 +169,7 @@ fun LazyListScope.appearance(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "AMOLED Black Theme",
+                        text = stringResource(Res.string.amoled_black_theme),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -167,7 +177,7 @@ fun LazyListScope.appearance(
                     Spacer(Modifier.height(4.dp))
 
                     Text(
-                        text = "Pure black background for dark mode",
+                        text = stringResource(Res.string.amoled_black_description),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

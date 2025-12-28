@@ -26,6 +26,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import githubstore.composeapp.generated.resources.Res
+import githubstore.composeapp.generated.resources.logout
+import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.githubstore.feature.settings.presentation.SettingsAction
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -47,7 +50,7 @@ fun LazyListScope.logout(
         ) {
             AccountItem(
                 icon = Icons.AutoMirrored.Filled.Logout,
-                title = "Logout",
+                title = stringResource(Res.string.logout),
                 actions = {
                     IconButton(
                         shapes = IconButtonDefaults.shapes(),

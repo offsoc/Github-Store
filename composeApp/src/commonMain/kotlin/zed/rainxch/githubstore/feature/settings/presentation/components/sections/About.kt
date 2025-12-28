@@ -28,6 +28,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import githubstore.composeapp.generated.resources.Res
+import githubstore.composeapp.generated.resources.help_support
+import githubstore.composeapp.generated.resources.section_about
+import githubstore.composeapp.generated.resources.version
+import org.jetbrains.compose.resources.stringResource
 import zed.rainxch.githubstore.feature.settings.presentation.SettingsAction
 import zed.rainxch.githubstore.feature.settings.presentation.utils.getVersionName
 
@@ -37,7 +42,7 @@ fun LazyListScope.about(
 ) {
     item {
         Text(
-            text = "ABOUT",
+            text = stringResource(Res.string.section_about),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.outline,
             fontWeight = FontWeight.Bold,
@@ -55,7 +60,7 @@ fun LazyListScope.about(
         ) {
             AboutItem(
                 icon = Icons.Filled.Info,
-                title = "Version",
+                title = stringResource(Res.string.version),
                 actions = {
                     Text(
                         text = getVersionName(),
@@ -69,7 +74,7 @@ fun LazyListScope.about(
 
             AboutItem(
                 icon = Icons.Filled.QuestionMark,
-                title = "Help & Support",
+                title = stringResource(Res.string.help_support),
                 actions = {
                     IconButton(
                         shape = IconButtonDefaults.shapes().shape,

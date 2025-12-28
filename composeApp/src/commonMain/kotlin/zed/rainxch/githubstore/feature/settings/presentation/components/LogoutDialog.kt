@@ -19,6 +19,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import githubstore.composeapp.generated.resources.Res
+import githubstore.composeapp.generated.resources.close
+import githubstore.composeapp.generated.resources.logout
+import githubstore.composeapp.generated.resources.logout_confirmation
+import githubstore.composeapp.generated.resources.navigate_back
+import githubstore.composeapp.generated.resources.warning
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,13 +45,13 @@ fun LogoutDialog(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Text(
-                text = "Warning!",
+                text = stringResource(Res.string.warning),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
-                text = "Are you sure you want to logout!",
+                text = stringResource(Res.string.logout_confirmation),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -60,7 +67,7 @@ fun LogoutDialog(
                     }
                 ) {
                     Text(
-                        text = "Close",
+                        text = stringResource(Res.string.close),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -74,7 +81,7 @@ fun LogoutDialog(
                     )
                 ) {
                     Text(
-                        text = "Logout",
+                        text = stringResource(Res.string.logout),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )

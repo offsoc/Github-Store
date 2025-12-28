@@ -26,8 +26,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import githubstore.composeapp.generated.resources.Res
+import githubstore.composeapp.generated.resources.logout_success
+import githubstore.composeapp.generated.resources.navigate_back
+import githubstore.composeapp.generated.resources.settings_title
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import zed.rainxch.githubstore.core.presentation.theme.GithubStoreTheme
@@ -50,7 +56,7 @@ fun SettingsRoot(
         when (event) {
             SettingsEvent.OnLogoutSuccessful -> {
                 coroutineScope.launch {
-                    snackbarState.showSnackbar("Logged out successfully, redirecting...")
+                    snackbarState.showSnackbar(getString(Res.string.logout_success))
 
                     onNavigateBack()
                 }
@@ -114,14 +120,14 @@ fun SettingsScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Navigate Back",
+                            contentDescription = stringResource(Res.string.navigate_back),
                             modifier = Modifier.size(24.dp)
                         )
                     }
                 },
                 title = {
                     Text(
-                        text = "Settings",
+                        text = stringResource(Res.string.settings_title),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
