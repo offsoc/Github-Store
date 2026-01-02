@@ -71,6 +71,17 @@ que convierte los GitHub Releases en una experiencia limpia al estilo de una tie
 
 ---
 
+## 🏆 Destacado en
+
+<a href="https://www.youtube.com/@howtomen">
+  <img src="https://img.shields.io/badge/Featured%20by-HowToMen-red?logo=youtube" alt="Destacado por HowToMen">
+</a>
+
+- **HowToMen**: [Top 20 mejores apps Android de 2026 (860k suscriptores)](https://www.youtube.com/watch?v=7favc9MDedQ)
+- **F-Droid**: [Puesto n.º 1 en la categoría App Store](https://f-droid.org/en/categories/app-store-updater/)
+
+---
+
 ## 🚀 Funcionalidades
 
 - **Descubrimiento inteligente**
@@ -210,6 +221,28 @@ sin necesidad de envío manual.
 - **Siempre la última versión**
 - **Experiencia uniforme en Android y Desktop**
 - **Open source y extensible**
+
+---
+
+## 💖 Apoya este proyecto
+
+GitHub Store es gratuito y siempre lo será.  
+Si este proyecto te resulta útil, puedes apoyarlo aquí:
+
+<a href="https://github.com/sponsors/rainxchzed">
+  <img src="https://img.shields.io/badge/Sponsor-GitHub-pink?logo=github" alt="Patrocinar en GitHub">
+</a>
+
+<a href="https://www.buymeacoffee.com/rainxchzed">
+  <img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black" alt="Invítame a un café">
+</a>
+
+Tu apoyo ayuda a:
+- Mantener la app para más de 20.000 usuarios
+- Desarrollar nuevas funciones
+- Crear más herramientas gratuitas para desarrolladores
+
+¡También puedes dejar una ⭐ en el repositorio y compartirlo!
 
 ---
 
